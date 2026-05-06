@@ -5,3 +5,7 @@ submited.png
 logi.png
 
 __pycache__/
+
+*.npy
+*.index
+*/yelp_reviews.csv
