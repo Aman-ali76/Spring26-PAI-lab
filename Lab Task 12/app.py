@@ -23,7 +23,7 @@ else:
 
 
 try:
-    dataset = pd.read_csv('yelp_reviews.csv')
+    df = pd.read_csv('yelp_reviews.csv')
     print("Loaded Yelp reviews")
 except Exception as e:
     print(f"Error loading dataset: {e}")

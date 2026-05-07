@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LegalBot PK — Pakistan Law AI Assistant</title>
+<meta name="description" content="AI-powered Pakistan law research chatbot using 28,249 indexed legal provisions from 1,030+ laws.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Design Tokens ── */
+:root {
+  --green:#4CAF50; --green-dark:#006e1c; --green-light:#F5F9F5;
+  --orange:#E8702A; --orange-light:#FFF3E0;
+  --oak:#C8A86B; --oak-light:#FFF8EC;
+  --cream:#FDFDF7; --white:#FFFFFF;
+  --text:#1b1c1c; --text-2:#3f4a3c; --text-3:#6f7a6b;
+  --border:#becab9; --border-oak:#C8A86B;
+  --shadow:0 1px 3px rgba(0,0,0,.08);
+  --radius:8px; --sidebar:280px; --panel:300px;
+  --font:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--cream);color:var(--text);height:100vh;display:flex;overflow:hidden}
+
+/* ── Sidebar ── */
+#sidebar{width:var(--sidebar);min-width:var(--sidebar);background:var(--green-light);border-right:1px solid var(--border-oak);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid var(--border)}
+.sb-logo h1{font-size:20px;font-weight:700;color:var(--green-dark);display:flex;align-items:center;gap:8px}
+.sb-logo p{font-size:12px;color:var(--text-3);margin-top:2px}
+#btn-new-chat{margin:12px 16px;padding:10px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-family:var(--font);font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:.2s}
+#btn-new-chat:hover{background:var(--green-dark)}
+.sb-section{padding:12px 16px 6px;font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text-3);text-transform:uppercase}
+.law-badge{margin:0 16px 12px;background:var(--orange);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;display:inline-block}
+#sb-search{margin:0 16px 10px;padding:8px 10px;border:1px solid var(--border-oak);border-radius:var(--radius);font-family:var(--font);font-size:13px;background:#fff;width:calc(100% - 32px);outline:none}
+#sb-search:focus{border-color:var(--green);border-width:2px}
+.chip-grid{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px}
+.chip{padding:4px 10px;border:1px solid var(--border-oak);border-radius:20px;font-size:12px;color:var(--green-dark);background:#fff;cursor:pointer;transition:.15s}
+.chip:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.history-list{flex:1;overflow-y:auto;padding:0 8px 12px}
+.history-item{padding:8px 10px;border-radius:var(--radius);font-size:13px;color:var(--text-2);cursor:pointer;margin-bottom:2px;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-item:hover{background:rgba(76,175,80,.1)}
+.history-item .hist-icon{font-size:14px;flex-shrink:0}
+
+/* ── Chat Panel ── */
+#chat-panel{flex:1;display:flex;flex-direction:column;height:100vh;background:var(--white);overflow:hidden}
+#chat-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--white)}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-left h2{font-size:16px;font-weight:700;color:var(--green-dark)}
+.stat-chip{background:var(--green-light);border:1px solid var(--border);padding:4px 10px;border-radius:20px;font-size:12px;color:var(--green-dark);font-weight:600}
+#chat-body{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
+.bubble-wrap{display:flex;flex-direction:column;max-width:80%}
+.bubble-wrap.user{align-self:flex-end;align-items:flex-end}
+.bubble-wrap.bot{align-self:flex-start;align-items:flex-start}
+.bubble{padding:12px 16px;border-radius:var(--radius);font-size:14px;line-height:1.6}
+.bubble.user{background:var(--green);color:#fff;border-bottom-right-radius:3px}
+.bubble.bot{background:var(--white);border:1px solid var(--border-oak);border-left:3px solid var(--green);border-bottom-left-radius:3px}
+.bubble.bot h4{color:var(--green-dark);font-size:13px;margin-bottom:6px}
+.bubble.bot ul{padding-left:18px;margin:6px 0}
+.bubble.bot li{margin-bottom:4px}
+.bubble.bot strong{color:var(--green-dark)}
+.sources{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.source-chip{background:var(--orange-light);border:1px solid var(--orange);color:var(--orange);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;text-decoration:none}
+.source-chip:hover{background:var(--orange);color:#fff}
+.meta-row{font-size:11px;color:var(--text-3);margin-top:4px}
+.typing{display:flex;gap:5px;align-items:center;padding:14px 16px}
+.typing span{width:8px;height:8px;background:var(--oak);border-radius:50%;animation:bounce .9s infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-8px)}}
+#chat-input-bar{padding:12px 16px;border-top:1px solid var(--border);background:var(--white);display:flex;gap:10px;align-items:center;flex-shrink:0}
+#user-input{flex:1;padding:10px 14px;border:1px solid var(--border-oak);border-radius:var(--radius);font-family:var(--font);font-size:14px;outline:none;background:#fff;resize:none;max-height:120px;overflow-y:auto}
+#user-input:focus{border-color:var(--green);border-width:2px}
+#btn-send{padding:10px 18px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-family:var(--font);font-weight:600;font-size:14px;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:6px}
+#btn-send:hover{background:var(--green-dark)}
+#btn-send:disabled{background:var(--border);cursor:not-allowed}
+#btn-clear{font-size:12px;color:var(--text-3);cursor:pointer;background:none;border:none;font-family:var(--font);padding:4px;text-decoration:underline}
+#btn-clear:hover{color:var(--orange)}
+
+/* ── Right Panel ── */
+#right-panel{width:var(--panel);min-width:var(--panel);background:var(--green-light);border-left:1px solid var(--border-oak);display:flex;flex-direction:column;height:100vh;overflow-y:auto;padding:16px;gap:14px}
+.panel-card{background:var(--white);border:1px solid var(--border-oak);border-radius:var(--radius);padding:14px}
+.panel-card h3{font-size:13px;font-weight:700;color:var(--green-dark);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.stat-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #f0eded;color:var(--text-2)}
+.stat-row:last-child{border:none}
+.stat-val{font-weight:700;color:var(--green-dark)}
+.disclaimer-card{border:1px solid var(--border-oak);background:var(--oak-light);border-radius:var(--radius);padding:14px}
+.disclaimer-card p{font-size:12px;color:var(--text-2);line-height:1.6;font-style:italic}
+.topic-grid{display:flex;flex-wrap:wrap;gap:6px}
+.topic-chip{padding:5px 10px;background:var(--oak-light);border:1px solid var(--oak);border-radius:20px;font-size:12px;color:#5a430f;cursor:pointer;transition:.15s;font-weight:500}
+.topic-chip:hover{background:var(--oak);color:#fff}
+.about-text{font-size:12px;color:var(--text-3);line-height:1.6}
+
+/* ── Welcome ── */
+.welcome-msg{text-align:center;padding:30px 20px;color:var(--text-3)}
+.welcome-msg .icon{font-size:48px;margin-bottom:12px}
+.welcome-msg h3{font-size:18px;font-weight:700;color:var(--green-dark);margin-bottom:8px}
+.welcome-msg p{font-size:14px;line-height:1.6;max-width:400px;margin:0 auto 16px}
+.suggestion-grid{display:flex;flex-direction:column;gap:8px;max-width:400px;margin:0 auto}
+.suggest-btn{padding:10px 14px;background:#fff;border:1px solid var(--border-oak);border-radius:var(--radius);text-align:left;font-size:13px;color:var(--text-2);cursor:pointer;font-family:var(--font);transition:.15s}
+.suggest-btn:hover{border-color:var(--green);color:var(--green-dark);background:var(--green-light)}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- LEFT SIDEBAR -->
+<aside id="sidebar">
+  <div class="sb-logo">
+    <h1>⚖️ LegalBot PK</h1>
+    <p>Pakistan Law AI Assistant</p>
+  </div>
+  <button id="btn-new-chat" onclick="newChat()">＋ New Chat</button>
+  <div class="law-badge">📚 1,030+ Laws Indexed</div>
+
+  <div class="sb-section">Browse Laws</div>
+  <input id="sb-search" type="text" placeholder="Search laws…" oninput="filterChips(this.value)">
+  <div class="chip-grid" id="chip-grid">
+    <span class="chip" onclick="askTopic('criminal law penalties')">Criminal</span>
+    <span class="chip" onclick="askTopic('civil rights law')">Civil</span>
+    <span class="chip" onclick="askTopic('family law divorce marriage')">Family</span>
+    <span class="chip" onclick="askTopic('banking financial law')">Banking</span>
+    <span class="chip" onclick="askTopic('labor employment law')">Labour</span>
+    <span class="chip" onclick="askTopic('property land law')">Property</span>
+    <span class="chip" onclick="askTopic('cyber crime digital law PECA')">Cyber</span>
+    <span class="chip" onclick="askTopic('tax revenue law')">Tax</span>
+    <span class="chip" onclick="askTopic('constitutional law fundamental rights')">Constitution</span>
+    <span class="chip" onclick="askTopic('corporate company law')">Company</span>
+  </div>
+
+  <div class="sb-section">Recent Chats</div>
+  <div class="history-list" id="history-list"></div>
+</aside>
+
+<!-- CHAT PANEL -->
+<main id="chat-panel">
+  <div id="chat-header">
+    <div class="header-left">
+      <h2>⚖️ LegalBot PK — Pakistan Law AI Assistant</h2>
+    </div>
+    <span class="stat-chip">28,249 Legal Provisions Indexed</span>
+  </div>
+
+  <div id="chat-body">
+    <div class="welcome-msg" id="welcome-screen">
+      <div class="icon">⚖️</div>
+      <h3>Welcome to LegalBot PK</h3>
+      <p>Ask any question about Pakistan law. I search 28,249 provisions across 1,030+ statutes and provide cited answers.</p>
+      <div class="suggestion-grid">
+        <button class="suggest-btn" onclick="askTopic('What is the punishment for cyber harassment under PECA 2016?')">💻 Cyber harassment punishment under PECA 2016?</button>
+        <button class="suggest-btn" onclick="askTopic('What are the grounds for divorce in Pakistan?')">👨‍👩‍👧 Grounds for divorce under Pakistan law?</button>
+        <button class="suggest-btn" onclick="askTopic('What is the punishment for theft under Pakistan Penal Code?')">⚖️ Punishment for theft under PPC?</button>
+        <button class="suggest-btn" onclick="askTopic('How to register a company in Pakistan?')">🏢 How to register a company in Pakistan?</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="chat-input-bar">
+    <textarea id="user-input" rows="1" placeholder="Ask any question about Pakistan law…" onkeydown="handleKey(event)"></textarea>
+    <button id="btn-send" onclick="sendMessage()">Send ➤</button>
+    <button id="btn-clear" onclick="newChat()">Clear</button>
+  </div>
+</main>
+
+<!-- RIGHT PANEL -->
+<aside id="right-panel">
+  <div class="panel-card" id="stats-card">
+    <h3>📊 Search Stats</h3>
+    <div class="stat-row"><span>Status</span><span class="stat-val" id="s-status">Ready</span></div>
+    <div class="stat-row"><span>Response Time</span><span class="stat-val" id="s-time">—</span></div>
+    <div class="stat-row"><span>Top Similarity</span><span class="stat-val" id="s-sim">—</span></div>
+    <div class="stat-row"><span>Sources Retrieved</span><span class="stat-val" id="s-src">—</span></div>
+  </div>
+
+  <div class="disclaimer-card">
+    <h3 style="font-size:13px;font-weight:700;color:#5a430f;margin-bottom:8px;">⚠️ Legal Disclaimer</h3>
+    <p>LegalBot PK provides AI-assisted legal research only — not formal legal advice. Always consult a qualified advocate registered with the relevant Bar Council for professional counsel.</p>
+  </div>
+
+  <div class="panel-card">
+    <h3>🔖 Quick Topics</h3>
+    <div class="topic-grid">
+      <span class="topic-chip" onclick="askTopic('cyber crime PECA 2016 penalties')">Cyber Crime</span>
+      <span class="topic-chip" onclick="askTopic('family law divorce khula')">Family Law</span>
+      <span class="topic-chip" onclick="askTopic('property rights ownership transfer')">Property</span>
+      <span class="topic-chip" onclick="askTopic('criminal penalties imprisonment')">Penalties</span>
+      <span class="topic-chip" onclick="askTopic('labor law workers rights')">Labour</span>
+      <span class="topic-chip" onclick="askTopic('banking financial regulations')">Banking</span>
+      <span class="topic-chip" onclick="askTopic('anti terrorism act ATA 1997')">Anti-Terror</span>
+      <span class="topic-chip" onclick="askTopic('women rights protection law')">Women Rights</span>
+      <span class="topic-chip" onclick="askTopic('narcotics drug law punishment')">Narcotics</span>
+      <span class="topic-chip" onclick="askTopic('environmental protection law')">Environment</span>
+    </div>
+  </div>
+
+  <div class="panel-card">
+    <h3>🏛️ About Database</h3>
+    <p class="about-text">Covers all Federal laws published in the Gazette of Pakistan — 1,030+ statutes from 1839 to 2026. Vector embeddings built with <strong>all-MiniLM-L6-v2</strong> and indexed via <strong>FAISS</strong> for millisecond retrieval. Powered by <strong>Gemini Flash</strong>.</p>
+  </div>
+</aside>
+
+<script>
+const SESSION_ID = 'session_' + Math.random().toString(36).slice(2);
+const chatBody = document.getElementById('chat-body');
+const userInput = document.getElementById('user-input');
+const btnSend = document.getElementById('btn-send');
+let msgCount = 0;
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  autoResize();
+}
+
+function autoResize() {
+  userInput.style.height = 'auto';
+  userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
+}
+
+function hideWelcome() {
+  const w = document.getElementById('welcome-screen');
+  if (w) w.remove();
+}
+
+function appendBubble(role, html, sources, elapsed) {
+  hideWelcome();
+  const wrap = document.createElement('div');
+  wrap.className = 'bubble-wrap ' + role;
+  const bub = document.createElement('div');
+  bub.className = 'bubble ' + role;
+  bub.innerHTML = html;
+  wrap.appendChild(bub);
+
+  if (role === 'bot' && sources && sources.length) {
+    const srcDiv = document.createElement('div');
+    srcDiv.className = 'sources';
+    sources.forEach(s => {
+      const a = document.createElement('a');
+      a.className = 'source-chip';
+      a.textContent = `${s.law_title.substring(0,22)}… §${s.section_number}`;
+      a.title = `${s.law_title} — Section ${s.section_number} (${Math.round(s.similarity*100)}% match)`;
+      a.href = s.source_url || '#';
+      a.target = '_blank';
+      srcDiv.appendChild(a);
+    });
+    wrap.appendChild(srcDiv);
+    if (elapsed) {
+      const meta = document.createElement('div');
+      meta.className = 'meta-row';
+      meta.textContent = `⚡ ${elapsed}s · ${sources.length} sources`;
+      wrap.appendChild(meta);
+    }
+  }
+  chatBody.appendChild(wrap);
+  chatBody.scrollTop = chatBody.scrollHeight;
+  return wrap;
+}
+
+function showTyping() {
+  const t = document.createElement('div');
+  t.className = 'bubble-wrap bot';
+  t.id = 'typing-indicator';
+  t.innerHTML = '<div class="bubble bot typing"><span></span><span></span><span></span></div>';
+  chatBody.appendChild(t);
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing-indicator');
+  if (t) t.remove();
+}
+
+function formatAnswer(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^####\s(.+)/gm, '<h4>$1</h4>')
+    .replace(/^###\s(.+)/gm, '<h4>$1</h4>')
+    .replace(/^##\s(.+)/gm, '<h4>$1</h4>')
+    .replace(/^- (.+)/gm, '<li>$1</li>')
+    .replace(/(<li>[\s\S]+?<\/li>)/g, '<ul>$1</ul>')
+    .replace(/\n\n+/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+
+async function sendMessage(overrideQuery) {
+  const query = (overrideQuery || userInput.value).trim();
+  if (!query) return;
+  userInput.value = '';
+  userInput.style.height = 'auto';
+  btnSend.disabled = true;
+
+  appendBubble('user', escHtml(query));
+  addHistory(query);
+  showTyping();
+  updateStats('Thinking…', '—', '—', '—');
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ query, session_id: SESSION_ID })
+    });
+    const data = await res.json();
+    removeTyping();
+    if (data.error) {
+      appendBubble('bot', '⚠️ ' + escHtml(data.error));
+    } else {
+      appendBubble('bot', formatAnswer(data.answer), data.sources, data.elapsed_s);
+      const topSim = data.sources && data.sources[0] ? Math.round(data.sources[0].similarity * 100) + '%' : '—';
+      updateStats('Done', data.elapsed_s + 's', topSim, data.sources ? data.sources.length : 0);
+    }
+  } catch (e) {
+    removeTyping();
+    appendBubble('bot', '⚠️ Connection error. Is the server running?');
+    updateStats('Error', '—', '—', '—');
+  }
+  btnSend.disabled = false;
+}
+
+function askTopic(q) { sendMessage(q); }
+
+function updateStats(status, time, sim, src) {
+  document.getElementById('s-status').textContent = status;
+  document.getElementById('s-time').textContent = time;
+  document.getElementById('s-sim').textContent = sim;
+  document.getElementById('s-src').textContent = src;
+}
+
+function newChat() {
+  chatBody.innerHTML = `<div class="welcome-msg" id="welcome-screen">
+    <div class="icon">⚖️</div>
+    <h3>Welcome to LegalBot PK</h3>
+    <p>Ask any question about Pakistan law. I search 28,249 provisions across 1,030+ statutes and provide cited answers.</p>
+    <div class="suggestion-grid">
+      <button class="suggest-btn" onclick="askTopic('What is the punishment for cyber harassment under PECA 2016?')">💻 Cyber harassment punishment under PECA 2016?</button>
+      <button class="suggest-btn" onclick="askTopic('What are the grounds for divorce in Pakistan?')">👨‍👩‍👧 Grounds for divorce under Pakistan law?</button>
+      <button class="suggest-btn" onclick="askTopic('What is the punishment for theft under Pakistan Penal Code?')">⚖️ Punishment for theft under PPC?</button>
+      <button class="suggest-btn" onclick="askTopic('How to register a company in Pakistan?')">🏢 How to register a company in Pakistan?</button>
+    </div>
+  </div>`;
+  fetch('/api/clear_session', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({session_id: SESSION_ID}) });
+  updateStats('Ready','—','—','—');
+}
+
+const historyStore = [];
+function addHistory(q) {
+  if (historyStore.includes(q)) return;
+  historyStore.unshift(q);
+  const list = document.getElementById('history-list');
+  const item = document.createElement('div');
+  item.className = 'history-item';
+  item.innerHTML = `<span class="hist-icon">📋</span>${escHtml(q.substring(0,38))}${q.length>38?'…':''}`;
+  item.onclick = () => sendMessage(q);
+  list.insertBefore(item, list.firstChild);
+  if (list.children.length > 10) list.removeChild(list.lastChild);
+}
+
+function filterChips(val) {
+  document.querySelectorAll('#chip-grid .chip').forEach(c => {
+    c.style.display = !val || c.textContent.toLowerCase().includes(val.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Ping health check
+fetch('/api/health').then(r=>r.json()).then(d=>{
+  document.getElementById('s-status').textContent = 'Online';
+}).catch(()=>{ document.getElementById('s-status').textContent = 'Offline'; });
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+*.env
+*__pycache__*
+plan.md
+
+*zip
+*.npy
+*.index
+pakistan_law_dataset/*
